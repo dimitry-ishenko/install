@@ -97,11 +97,7 @@ fi
 
 if [[ -n "$desktop" ]]; then
     cyan "Installing ubuntu-desktop-meta"
-    install_local deb/ubuntu-desktop-meta apparmor- modemmanager- openvpn- ppp- speech-dispatcher- sssd-
-    echo
-
-    cyan "Installing fonts-extra"
-    install_local deb/fonts-extra
+    chroot apt-get -y install ubuntu-desktop-meta apparmor- modemmanager- openvpn- ppp- speech-dispatcher- sssd-
     echo
 fi
 
