@@ -1,10 +1,12 @@
 #!/bin/bash
-set -e
 
-source colors || source ./colors || exit 1
+set -e
+shopt -s dotglob
+source colors || source "$(dirname "$0")"/colors
+
 (($EUID != 0)) && die "Must be root"
 
-unset arch desktop distro minimal rpi standard
+unset arch desktop distro minimal rpi stage3 standard
 
 for p in $@; do
     case $p in
@@ -13,64 +15,86 @@ for p in $@; do
         i386|amd64|armhf|arm64) arch="$p";;
         minimal) minimal=1;;
         rpi) rpi=1;;
+        stage3) stage3=1;;
         standard) standard=1;;
     esac
 done
 
 [[ -n "$minimal" || -n "$standard" || -n "$desktop" ]] || die "Must specify one of minimal, standard or desktop"
 
+if [[ ! -n "$stage3" ]]; then
+####################
+# stage2
+####################
+
 [[ -n "$rpi" && ! -n "$arch" ]] && arch=arm64
 arch=${arch:-$(dpkg-architecture -q DEB_BUILD_ARCH)}
 distro=${distro:-$(ubuntu-distro-info --stable)}
 
-root=${root:-root}
-etc=$root/etc
-apt=$etc/apt
-firmware=$root/boot/firmware
-
-chroot()
-{
-    systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=$root --timezone=off "$@"
-}
-
 cyan -n "Creating image "; echo "$distro $arch"
-debootstrap --variant=minbase --arch=$arch --cache-dir=/var/cache/apt/archives $distro $root
+debootstrap --variant=minbase --arch=$arch --cache-dir=/var/cache/apt/archives $distro ./root
 echo
 
-cyan "Adding Ubuntu Archive sources"
+cyan "Adding Ubuntu sources"
 [[ -n "$rpi" ]] && url=http://ports.ubuntu.com/ubuntu-ports || url=http://archive.ubuntu.com/ubuntu
-rm -r $apt/{sources.list,trusted.gpg.d}
-cp apt/50-ubuntu.sources $apt/sources.list.d/
-sed -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" -i $apt/sources.list.d/50-ubuntu.sources
-
-cyan "Installing CA certificates"
-chroot apt-get -y install ca-certificates
-echo
+rm -r ./root/etc/apt/{sources.list,trusted.gpg.d}
+cp apt/50-ubuntu.sources ./root/etc/apt/sources.list.d/
+sed -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" -i ./root/etc/apt/sources.list.d/50-ubuntu.sources
 
 cyan "Adding PPA sources"
-cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources $apt/sources.list.d/
-cp ppa/ppa-verse/ppa-verse-keyring.gpg $apt/keyrings/
-sed -i -e "s|%distro%|$distro|g" $apt/sources.list.d/30-ppa-verse-*.sources
+cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources ./root/etc/apt/sources.list.d/
+cp ppa/ppa-verse/ppa-verse-keyring.gpg ./root/etc/apt/keyrings/
+sed -i -e "s|%distro%|$distro|g" ./root/etc/apt/sources.list.d/30-ppa-verse-*.sources
+echo
+
+cyan "Launching stage3"
+cp -v "$0" /usr/bin/colors ./root/root/
+systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=./root --timezone=off /root/$(basename "$0") "$@" stage3
+rm ./root/root/{$(basename "$0"),colors}
+
+else
+####################
+# stage3
+####################
+
+echo
+cyan "Installing CA certificates"
+apt-get -y install ca-certificates
+echo
 
 cyan "Updating system"
-chroot bash -c "
 apt-get update
-apt-get dist-upgrade --autoremove --purge --yes
+apt-get -y dist-upgrade --autoremove --purge
 apt-mark showmanual | xargs apt-mark auto
-"
 echo
 
 cyan "Installing ubuntu-minimal-meta"
-chroot apt-get -y install ubuntu-minimal-meta polkitd- shared-mime-info- thermald- xdg-user-dirs-
+apt-get -y install ubuntu-minimal-meta polkitd- shared-mime-info- thermald- xdg-user-dirs-
 echo
 
 cyan "Generating locales"
-chroot dpkg-reconfigure locales
+dpkg-reconfigure locales
 echo
+
+if [[ -n "$standard" || -n "$desktop" ]]; then
+    cyan "Installing ubuntu-standard-meta"
+    apt-get -y install ubuntu-standard-meta plymouth- xauth-
+    echo
+
+    cyan "Installing tools-meta"
+    apt-get -y install tools-meta mailcap- pastebinit- xauth-
+    echo
+fi
+
+if [[ -n "$desktop" ]]; then
+    cyan "Installing ubuntu-desktop-meta"
+    apt-get -y install ubuntu-desktop-meta apparmor- modemmanager- openvpn- ppp- speech-dispatcher- sssd-
+    echo
+fi
 
 cyan "Creating fstab"
 [[ -n "$rpi" ]] && boot=firmware || boot="efi     "
-cat > $etc/fstab <<EOF
+cat > /etc/fstab <<EOF
 # <source>      <target>        <type>  <options>                   <dump>  <pass>
 
 LABEL=root      /               ext4    noatime,errors=remount-ro   0       1
@@ -80,47 +104,24 @@ LABEL=$boot  /boot/$boot  vfat    noatime,umask=0077          0       1
 EOF
 
 cyan "Setting hostname"
-echo linux > $etc/hostname
+echo linux > /etc/hostname
 
 cyan "Modifying journald.conf"
-sed -e "s/#Storage=auto/Storage=volatile/" -e "s/#SplitMode=uid/SplitMode=none/" -i $etc/systemd/journald.conf
-
-if [[ -n "$standard" || -n "$desktop" ]]; then
-    cyan "Installing ubuntu-standard-meta"
-    chroot apt-get -y install ubuntu-standard-meta plymouth- xauth-
-    echo
-
-    cyan "Installing tools-meta"
-    chroot apt-get -y install tools-meta mailcap- pastebinit- xauth-
-    echo
-fi
-
-if [[ -n "$desktop" ]]; then
-    cyan "Installing ubuntu-desktop-meta"
-    chroot apt-get -y install ubuntu-desktop-meta apparmor- modemmanager- openvpn- ppp- speech-dispatcher- sssd-
-    echo
-fi
-
-if [[ -n "$standard" || -n "$desktop" ]]; then
-    cyan "Enabling SSH socket"
-    chroot systemctl disable ssh.service
-    chroot systemctl enable ssh.socket
-    echo
-fi
+sed -e "s/#Storage=auto/Storage=volatile/" -e "s/#SplitMode=uid/SplitMode=none/" -i /etc/systemd/journald.conf
 
 cyan "Forcing color terminal"
-sed -i -re "s/#(force_color_prompt=yes)/\1/g" $etc/skel/.bashrc
+sed -i -re "s/#(force_color_prompt=yes)/\1/g" /etc/skel/.bashrc
 
 cyan "Updating root files"
-cp -v $etc/skel/{.bash*,.profile} $root/root/
-sed -e "s/01;32m/01;31m/g" -i $root/root/.bashrc
+cp -rv /etc/skel/* /root/
+sed -e "s/01;32m/01;31m/g" -i /root/.bashrc
 echo
 
 if [[ -n "$rpi" ]]; then
-    mkdir -p $firmware
+    mkdir -p /boot/firmware
 
     cyan "Creating config.txt"
-    cat > $firmware/config.txt <<EOF
+    cat > /boot/firmware/config.txt <<EOF
 [pi4]
 max_framebuffers=2
 
@@ -140,27 +141,32 @@ dtoverlay=dwc2
 EOF
 
     cyan "Creating cmdline.txt"
-    cat > $firmware/cmdline.txt <<EOF
+    cat > /boot/firmware/cmdline.txt <<EOF
 dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=LABEL=root rootfstype=ext4 elevator=deadline rootwait fixrtc quiet splash
 EOF
 
     cyan "Hax0ring flash-kernel functions"
-    functions=$root/usr/share/flash-kernel/functions
+    functions=/usr/share/flash-kernel/functions
     mv $functions $functions.bak
     sed -e 's|if \(\[ -d /sys/firmware/efi \]\);|if \1 \&\& [ "$FK_FORCE" != "yes" ];|' $functions.bak > $functions
 
     cyan "Flashing kernel"
-    chroot bash -c "FK_FORCE=yes flash-kernel --machine 'Raspberry Pi '"
+    FK_FORCE=yes flash-kernel --machine "Raspberry Pi "
+    echo
+fi
+
+if [[ -n "$standard" || -n "$desktop" ]]; then
+    cyan "Enabling SSH socket"
+    systemctl disable ssh.service
+    systemctl enable ssh.socket
 fi
 
 cyan "Disabling services"
-chroot bash -c "
 systemctl disable apt-daily-upgrade.timer apt-daily.timer dpkg-db-backup.timer getty@tty1.service
 systemctl disable man-db.timer || true
-"
 echo
 
 cyan "Cleaning up"
-rm -rv $etc/{apparmor.d,cron.*,emacs,init.d,rc?.d,rsyslog.d}
+rm -rv /etc/{apparmor.d,cron.*,emacs,init.d,rc?.d,rsyslog.d} || true
 
-exit 0
+fi
