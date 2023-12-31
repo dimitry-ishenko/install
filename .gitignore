@@ -1,3 +1,5 @@
+apt/apt-key_add
+boot
 image
 root
 tmp
