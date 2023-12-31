@@ -1,16 +1,16 @@
 #!/bin/bash
-set -e
 
-source colors || source ./colors || exit 1
+set -e
+source colors
+
 (($EUID != 0)) && die "Must be root"
 
 (($# != 1)) && die "Specify username to add"
 name="$1"
 
 cyan "Creating user $name"
-systemd-nspawn -D root/ bash -c "
+systemd-nspawn -D ./root bash -c "
 adduser --add_extra_groups $name
 adduser $name sudo
 adduser $name systemd-journal
 "
-echo
