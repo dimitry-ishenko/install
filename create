@@ -47,7 +47,7 @@ cp ppa/ppa-verse/ppa-verse-keyring.gpg ./root/etc/apt/keyrings/
 sed -i -e "s|%distro%|$distro|g" ./root/etc/apt/sources.list.d/30-ppa-verse-*.sources
 echo
 
-cyan "Launching stage3"
+cyan "Entering chroot"
 cp -v "$0" /usr/bin/colors ./root/root/
 systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=./root --timezone=off /root/$(basename "$0") "$@" stage3
 rm ./root/root/{$(basename "$0"),colors}
