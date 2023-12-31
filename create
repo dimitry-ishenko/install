@@ -88,7 +88,7 @@ fi
 
 if [[ -n "$desktop" ]]; then
     cyan "Installing ubuntu-desktop-meta"
-    apt-get -y install ubuntu-desktop-meta apparmor- modemmanager- openvpn- ppp- speech-dispatcher- sssd-
+    apt-get -y install ubuntu-desktop-meta apparmor- cloud-init- fonts-noto-cjk- memtest86+- modemmanager- openvpn- ppp- secureboot-db- speech-dispatcher- sssd-
     echo
 fi
 
