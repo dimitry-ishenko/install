@@ -2,7 +2,7 @@
 
 set -e
 shopt -s dotglob
-source colors || source "$(dirname "$0")"/colors
+source colors 2>/dev/null || source "$(dirname "$0")"/colors
 
 (($EUID != 0)) && die "Must be root"
 
