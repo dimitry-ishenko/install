@@ -27,29 +27,32 @@ if [[ ! -n "$stage3" ]]; then
 # stage2
 ####################
 
+cage=./root
+apt=$cage/etc/apt
+
 [[ -n "$rpi" && ! -n "$arch" ]] && arch=arm64
 arch=${arch:-$(dpkg-architecture -q DEB_BUILD_ARCH)}
 distro=${distro:-$(ubuntu-distro-info --stable)}
 
 cyan -n "Creating image: "; echo "$distro $arch"
-debootstrap --variant=minbase --arch=$arch --cache-dir=/var/cache/apt/archives $distro ./root
+debootstrap --variant=minbase --arch=$arch --cache-dir=/var/cache/apt/archives $distro $cage
 echo
 
 cyan "Adding Ubuntu sources"
 [[ -n "$rpi" ]] && url=http://ports.ubuntu.com/ubuntu-ports || url=http://archive.ubuntu.com/ubuntu
-rm -r ./root/etc/apt/{sources.list,trusted.gpg.d}
-cp apt/50-ubuntu.sources ./root/etc/apt/sources.list.d/
-sed -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" -i ./root/etc/apt/sources.list.d/50-ubuntu.sources
+rm -r $apt/{sources.list,trusted.gpg.d}
+cp apt/50-ubuntu.sources $apt/sources.list.d/
+sed -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" -i $apt/sources.list.d/50-ubuntu.sources
 
 cyan "Adding ppa-verse sources"
-cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources ./root/etc/apt/sources.list.d/
-cp ppa/ppa-verse/ppa-verse-keyring.gpg ./root/etc/apt/keyrings/
-sed -i -e "s|%distro%|$distro|g" ./root/etc/apt/sources.list.d/30-ppa-verse-*.sources
+cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources $apt/sources.list.d/
+cp ppa/ppa-verse/ppa-verse-keyring.gpg $apt/keyrings/
+sed -i -e "s|%distro%|$distro|g" $apt/sources.list.d/30-ppa-verse-*.sources
 
 cyan "Moving onto stage3"
-cp -v "$0" /usr/bin/colors ./root/root/
-systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=./root --timezone=off /root/$(basename "$0") "$@" stage3
-rm ./root/root/{$(basename "$0"),colors}
+cp -v "$0" /usr/bin/colors $cage/root/
+systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=$cage --timezone=off /root/$(basename "$0") "$@" stage3
+rm $cage/root/{$(basename "$0"),colors}
 
 else
 ####################
