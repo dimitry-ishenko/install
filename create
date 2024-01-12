@@ -30,6 +30,16 @@ if [[ ! -n "$stage3" ]]; then
 cage=./root
 apt=$cage/etc/apt
 
+if [[ -d $cage ]]; then
+    for n in 5 4 3 2 1; do
+        cyan -ne "\rRemoving current chroot"; echo -n " ... in $n "
+        sleep 1
+    done
+    echo
+    rm -r $cage
+fi
+mkdir $cage
+
 [[ -n "$rpi" && ! -n "$arch" ]] && arch=arm64
 arch=${arch:-$(dpkg-architecture -q DEB_BUILD_ARCH)}
 distro=${distro:-$(ubuntu-distro-info --stable)}
