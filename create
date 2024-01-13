@@ -52,12 +52,12 @@ cyan "Adding Ubuntu sources"
 [[ -n "$rpi" ]] && url=http://ports.ubuntu.com/ubuntu-ports || url=http://archive.ubuntu.com/ubuntu
 rm -r $apt/{sources.list,trusted.gpg.d}
 cp apt/50-ubuntu.sources $apt/sources.list.d/
-sed -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" -i $apt/sources.list.d/50-ubuntu.sources
+sed -ri -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" $apt/sources.list.d/50-ubuntu.sources
 
 cyan "Adding ppa-verse sources"
 cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources $apt/sources.list.d/
 cp ppa/ppa-verse/ppa-verse-keyring.gpg $apt/keyrings/
-sed -i -e "s|%distro%|$distro|g" $apt/sources.list.d/30-ppa-verse-*.sources
+sed -ri -e "s|%distro%|$distro|g" $apt/sources.list.d/30-ppa-verse-*.sources
 
 cyan "Moving onto stage3"
 cp -v "$0" /usr/bin/colors $cage/root/
@@ -85,7 +85,7 @@ DEBIAN_FRONTEND=noninteractive apt-get -y install ubuntu-minimal-meta polkitd- s
 echo
 
 cyan "Generating locales"
-sed -re "s/^# (en_US.UTF-8.*)$/\1/" -i /etc/locale.gen
+sed -ri -e "s/^# (en_US.UTF-8.*)$/\1/" /etc/locale.gen
 echo LANG=en_US.UTF-8 > /etc/default/locale
 dpkg-reconfigure -fnoninteractive locales
 echo
@@ -121,14 +121,14 @@ cyan "Setting hostname"
 echo linux > /etc/hostname
 
 cyan "Modifying journald.conf"
-sed -e "s/#Storage=auto/Storage=volatile/" -e "s/#SplitMode=uid/SplitMode=none/" -i /etc/systemd/journald.conf
+sed -ri -e "s/#Storage=auto/Storage=volatile/" -e "s/#SplitMode=uid/SplitMode=none/" /etc/systemd/journald.conf
 
 cyan "Forcing color terminal"
-sed -i -re "s/#(force_color_prompt=yes)/\1/g" /etc/skel/.bashrc
+sed -ri -e "s/#(force_color_prompt=yes)/\1/g" /etc/skel/.bashrc
 
 cyan "Updating root files"
 cp -rv /etc/skel/* /root/
-sed -e "s/01;32m/01;31m/g" -i /root/.bashrc
+sed -ri -e "s/01;32m/01;31m/g" /root/.bashrc
 echo
 
 if [[ -n "$rpi" ]]; then
