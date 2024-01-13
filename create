@@ -81,11 +81,13 @@ apt-mark showmanual | xargs apt-mark auto
 echo
 
 cyan "Installing ubuntu-minimal-meta"
-apt-get -y install ubuntu-minimal-meta polkitd- shared-mime-info- thermald- xdg-user-dirs-
+DEBIAN_FRONTEND=noninteractive apt-get -y install ubuntu-minimal-meta polkitd- shared-mime-info- thermald- xdg-user-dirs-
 echo
 
 cyan "Generating locales"
-dpkg-reconfigure locales
+sed -re "s/^# (en_US.UTF-8.*)$/\1/" -i /etc/locale.gen
+echo LANG=en_US.UTF-8 > /etc/default/locale
+dpkg-reconfigure -fnoninteractive locales
 echo
 
 if [[ -n "$standard" || -n "$desktop" ]]; then
