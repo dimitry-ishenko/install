@@ -5,6 +5,8 @@ if (($# != 1)); then
     exit 1
 fi
 
+[[ ${1: -1} =~ [0-9] ]] && p=${1}p || p=$1
+
 run() { echo "* $@"; "$@"; echo; }
 
 run parted $1 mktable gpt
@@ -12,5 +14,5 @@ run parted $1 mkpart efi 0% 512MiB
 run parted $1 set 1 boot on
 run parted $1 mkpart root 512MiB 100%
 
-run mkfs.fat -F 32 -n efi ${1}1
-run mkfs.ext4 -L root ${1}2
+run mkfs.fat -F 32 -n efi ${p}1
+run mkfs.ext4 -L root ${p}2
