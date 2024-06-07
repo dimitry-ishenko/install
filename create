@@ -52,12 +52,12 @@ cyan "Adding Ubuntu sources"
 [[ -n "$rpi" ]] && url=http://ports.ubuntu.com/ubuntu-ports || url=http://archive.ubuntu.com/ubuntu
 rm -r $apt/{sources.list,trusted.gpg.d}
 cp apt/50-ubuntu.sources $apt/sources.list.d/
-sed -ri -e "s|%distro%|$distro|g" -e "s|URIs:.*|URIs: $url|" $apt/sources.list.d/50-ubuntu.sources
+sed -ri -e "s|%distro%|$distro|g" -e "s|%arch%|$arch|g" -e "s|URIs:.*|URIs: $url|" $apt/sources.list.d/50-ubuntu.sources
 
 cyan "Adding ppa-verse sources"
 cp ppa/ppa-verse/30-ppa-verse-{core,dev}.sources $apt/sources.list.d/
 cp ppa/ppa-verse/ppa-verse-keyring.gpg $apt/keyrings/
-sed -ri -e "s|%distro%|$distro|g" $apt/sources.list.d/30-ppa-verse-*.sources
+sed -ri -e "s|%distro%|$distro|g" -e "s|%arch%|$arch|g" $apt/sources.list.d/30-ppa-verse-*.sources
 
 cyan "Moving onto stage3"
 cp -v "$0" /usr/bin/colors $cage/root/
