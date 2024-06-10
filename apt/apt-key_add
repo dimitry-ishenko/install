@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if (($# < 2)); then
+    echo "Usage: $(basename "$0") <keyring> <key> [<key>] ..."
+    exit 1
+fi
+
+ring="$1"
+shift
+
+sudo gpg --no-default-keyring --keyring "$ring" --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "$@"
