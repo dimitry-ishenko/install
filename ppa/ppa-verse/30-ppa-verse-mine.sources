@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://ppa.launchpadcontent.net/ppa-verse/mine/ubuntu
+Suites: %distro%
+Components: main
+Architectures: %arch%
+Signed-By: /etc/apt/keyrings/ppa-verse-keyring.gpg
