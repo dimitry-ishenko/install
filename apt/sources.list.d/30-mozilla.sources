@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Components: main
+Architectures: %arch%
+Signed-By: /etc/apt/keyrings/mozilla-keyring.key
