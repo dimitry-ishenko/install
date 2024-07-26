@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
-if (($# != 1)); then
+if [ $# -ne 1 ]; then
     echo "Usage: $0 <drive>"
     exit 1
 fi
 
-[[ ${1: -1} =~ [0-9] ]] && p=${1}p || p=$1
+echo -n $1 | tail -c1 | grep "[0-9]" && p=${1}p || p=$1
 
 run() { echo "* $@"; "$@"; echo; }
 
