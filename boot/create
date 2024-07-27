@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+source colors
+(($EUID == 0)) || die "Must be root"
+
+# create bootable USB
+(($# == 1)) && target="$1" || die "Missing target path"
+
+cyan "Creating grub.cfg"
+mkdir -p "$target/grub"
+cat > "$target/grub/grub.cfg" <<EOF
+# grub.cfg
+
+insmod part_gpt
+insmod ext2
+
+set gfxmode=auto
+set gfxpayload=keep
+insmod all_video
+insmod gfxterm
+
+menuentry "Rescue shell" {
+    echo    "Booting"
+    linux   /boot/vmlinuz
+    initrd  /boot/initramfs
+}
+EOF
+
+cyan "Installing GRUB"
+mkdir -p "$target/EFI"
+grub-install --boot-directory="$target" --efi-directory="$target" --removable --target=i386-efi
+grub-install --boot-directory="$target" --efi-directory="$target" --removable --target=x86_64-efi
+
+cyan "Copying Linux kernel"
+mkdir -p "$target/boot"
+cp -Lv /boot/vmlinuz "$target/boot/"
+
+cyan "Creating initramfs"
+mkinitramfs -d initramfs-tools -o "$target/boot/initramfs"
