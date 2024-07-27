@@ -1,8 +1,6 @@
 #!/bin/bash
 
-if (($EUID != 0)); then
-    echo "Must be root"
-    exit 1
-fi
+source colors
+(($EUID == 0)) || die "Must be root"
 
 tar -cvzpf image.tar.gz -C root/ "$@" .

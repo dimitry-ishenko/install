@@ -1,9 +1,7 @@
 #!/bin/bash
 
-if (($EUID != 0)); then
-    echo "Must be root"
-    exit 1
-fi
+source colors
+(($EUID == 0)) || die "Must be root"
 
 systemd-nspawn --bind=/var/cache/apt/archives --resolv-conf=bind-stub --directory=root/ --timezone=off "$@"
 rm -rv root/{root,home/*}/.bash_history 2>/dev/null
