@@ -1,8 +1,20 @@
 #!/bin/sh
 set -e
 
-cage=${1:-.}
-mount -t sysfs    sysfs  $cage/sys
-mount -t proc     proc   $cage/proc
-mount -t devtmpfs dev    $cage/dev
-mount -t devpts   devpts $cage/dev/pts
+opt_mount()
+{
+    if ! grep -q " $2 " /proc/mounts; then
+        mount -t $1 $1 $2
+    fi
+}
+
+cage=$(readlink -f ${1:-.})
+
+opt_mount sysfs    $cage/sys
+opt_mount proc     $cage/proc
+opt_mount devtmpfs $cage/dev
+opt_mount devpts   $cage/dev/pts
+
+if grep -q efivarfs /proc/filesystems; then
+    opt_mount efivarfs $cage/sys/firmware/efi/efivars
+fi

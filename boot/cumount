@@ -1,7 +1,16 @@
 #!/bin/sh
 
-cage=${1:-.}
-umount $cage/dev/pts
-umount $cage/dev
-umount $cage/proc
-umount $cage/sys
+opt_umount()
+{
+    if grep -q " $1 " /proc/mounts; then
+        umount $1
+    fi
+}
+
+cage=$(readlink -f ${1:-.})
+
+opt_umount $cage/sys/firmware/efi/efivars
+opt_umount $cage/dev/pts
+opt_umount $cage/dev
+opt_umount $cage/proc
+opt_umount $cage/sys
