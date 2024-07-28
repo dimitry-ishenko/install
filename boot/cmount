@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+cage=${1:-.}
+mount -t sysfs    sysfs  $cage/sys
+mount -t proc     proc   $cage/proc
+mount -t devtmpfs dev    $cage/dev
+mount -t devpts   devpts $cage/dev/pts

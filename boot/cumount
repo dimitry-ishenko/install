@@ -1,0 +1,7 @@
+#!/bin/sh
+
+cage=${1:-.}
+umount $cage/dev/pts
+umount $cage/dev
+umount $cage/proc
+umount $cage/sys

@@ -12,12 +12,14 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-copy_exec /usr/sbin/parted
+copy_exec /usr/bin/mount
+copy_exec /usr/bin/tar
 copy_exec /usr/sbin/mkfs.ext4
 copy_exec /usr/sbin/mkfs.fat
 copy_exec /usr/sbin/mkfs.ntfs
-copy_exec /usr/bin/tar
-copy_exec /usr/bin/mount
+copy_exec /usr/sbin/parted
 
-copy_exec ./part-efi /usr/sbin
+copy_exec ./cmount /usr/sbin
+copy_exec ./cumount /usr/sbin
 copy_exec ./part-bios /usr/sbin
+copy_exec ./part-efi /usr/sbin
