@@ -22,7 +22,7 @@ insmod gfxterm
 
 menuentry "Rescue shell" {
     echo    "Booting"
-    linux   /boot/vmlinuz
+    linux   /boot/vmlinuz rescue_shell
     initrd  /boot/initramfs
 }
 EOF
