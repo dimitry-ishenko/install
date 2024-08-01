@@ -7,12 +7,10 @@ fi
 
 echo -n $1 | tail -c1 | grep -q "[0-9]" && p=${1}p || p=$1
 
-run() { echo "* $@"; "$@"; echo; }
+parted $1 mktable gpt
+parted $1 mkpart efi 0% 512MiB
+parted $1 set 1 boot on
+parted $1 mkpart root 512MiB 100%
 
-run parted $1 mktable gpt
-run parted $1 mkpart efi 0% 512MiB
-run parted $1 set 1 boot on
-run parted $1 mkpart root 512MiB 100%
-
-run mkfs.fat -F 32 -n efi ${p}1
-run mkfs.ext4 -L root ${p}2
+mkfs.fat -F 32 -n efi ${p}1
+mkfs.ext4 -L root ${p}2

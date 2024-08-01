@@ -7,13 +7,11 @@ fi
 
 echo -n $1 | tail -c1 | grep -q "[0-9]" && p=${1}p || p=$1
 
-run() { echo "* $@"; "$@"; echo; }
+parted $1 mktable gpt
+parted $1 mkpart grub 0% 16MiB
+parted $1 set 1 bios_grub on
+parted $1 mkpart boot 16MiB 512MiB
+parted $1 mkpart root 512MiB 100%
 
-run parted $1 mktable gpt
-run parted $1 mkpart grub 0% 16MiB
-run parted $1 set 1 bios_grub on
-run parted $1 mkpart boot 16MiB 512MiB
-run parted $1 mkpart root 512MiB 100%
-
-run mkfs.ext4 -L boot ${p}2
-run mkfs.ext4 -L root ${p}3
+mkfs.ext4 -L boot ${p}2
+mkfs.ext4 -L root ${p}3
