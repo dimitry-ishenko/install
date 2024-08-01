@@ -1,0 +1,66 @@
+#!/bin/busybox sh
+
+run_shell()
+{
+    busybox --install -s
+
+    sleep 3
+    echo 0 > /proc/sys/kernel/printk
+
+    echo "Dropping into shell"
+    HOME=/root
+    $1 setsid cttyhack sh -l
+}
+
+root=
+resume=
+init=/sbin/init
+
+find()
+{
+    local n=${1%=*} p=${1#*=}
+
+    echo "Waiting for $n device"
+    for i in $(seq 1 10); do
+        findfs $p && break
+        sleep 1
+    done
+}
+
+mount -n -t devtmpfs devtmpfs /dev
+mount -n -t devpts   devpts   /dev/pts
+mount -n -t proc     proc     /proc
+mount -n -t sysfs    sysfs    /sys
+
+for cmd in $(cat /proc/cmdline); do
+    case ${cmd} in
+        shell)    run_shell;;
+        root=*)   root=$(find $cmd);;
+        resume=*) resume=$(find $cmd);;
+        init=*)   init=${cmd#init=};;
+    esac
+done
+
+if [ -n "$resume" -a -e /sys/power/resume ]; then
+    # echo device major and minor numbers in the form x:y
+    min=$(stat -c %t $resume)
+    maj=$(stat -c %T $resume)
+    echo "$((0x$min)):$((0x$maj))" > /sys/power/resume
+fi
+
+if [ -n "$root" ]; then
+    if mount -n -o ro $root /mnt/root; then
+        umount -n /sys
+        umount -n /proc
+        umount -n /dev/pts
+        umount -n /dev
+
+        exec switch_root /mnt/root $init
+    else
+        echo "Failed to mount $root"
+    fi
+else
+    echo "Root device not specified or not found"
+fi
+
+run_shell exec
