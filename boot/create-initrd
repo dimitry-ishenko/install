@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+source colors
+
+DESTDIR=$(mktemp -d) # used by hook-functions and by us
+verbose=y # used by hook-functions
+. /usr/share/initramfs-tools/hook-functions
+
+cyan "Copying initrd skeleton"
+cp -av -T initrd/ $DESTDIR/
+echo
+
+cyan "Adding essential files"
+copy_exec /usr/bin/busybox
+copy_exec /usr/bin/mount
+copy_exec /usr/bin/tar
+copy_exec /usr/sbin/mkfs.ext4
+copy_exec /usr/sbin/mkfs.fat
+copy_exec /usr/sbin/mkfs.ntfs
+copy_exec /usr/sbin/parted
+copy_exec cmount /usr/bin
+copy_exec cumount /usr/bin
+copy_exec part-bios /usr/bin
+copy_exec part-efi /usr/bin
+echo
+
+cyan "Compressing"
+(cd $DESTDIR; find -print0 | cpio --create -0 --format=newc --verbose | gzip --best > ../initrd.cpio.gz)
+mv $DESTDIR/../initrd.cpio.gz .
+echo
+
+cyan "Cleaning up"
+rm -r $DESTDIR
+echo
