@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <drive>"
@@ -7,11 +8,11 @@ fi
 
 echo -n $1 | tail -c1 | grep -q "[0-9]" && p=${1}p || p=$1
 
-parted $1 mktable gpt
-parted $1 mkpart grub 0% 16MiB
-parted $1 set 1 bios_grub on
-parted $1 mkpart boot 16MiB 512MiB
-parted $1 mkpart root 512MiB 100%
+parted -s $1 mktable gpt
+parted -s $1 mkpart grub 0% 16MiB
+parted -s $1 set 1 bios_grub on
+parted -s $1 mkpart boot 16MiB 512MiB
+parted -s $1 mkpart root 512MiB 100%
 
-mkfs.ext4 -L boot ${p}2
-mkfs.ext4 -L root ${p}3
+mkfs.ext4 -F -L boot ${p}2
+mkfs.ext4 -F -L root ${p}3
