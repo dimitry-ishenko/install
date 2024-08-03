@@ -14,5 +14,5 @@ mv /usr/bin/busybox.full /usr/bin/busybox
 
 echo "Dropping into shell"
 hostname linux
-export PS1='\u@\h:\w\p '
+export PS1='\u@\h:\w\$ '
 exec setsid cttyhack sh -l
