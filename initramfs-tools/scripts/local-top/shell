@@ -10,14 +10,14 @@ prereqs)
     ;;
 esac
 
-if grep -qE " shell( |$)" /proc/cmdline; then
-    cat >> $HOME/.profile <<EOF
-alias ll="ls -lF"
-alias la="ls -laF"
-EOF
+grep -qE " shell( |$)" /proc/cmdline || exit 0
 
-    export PS1="root@linux:# "
-    while :; do /bin/sh -l; done
-fi
+# replace busybox with full version
+find -samefile /usr/bin/busybox -exec rm '{}' ';'
+mv /usr/bin/busybox.full /usr/bin/busybox
+/usr/bin/busybox --install
 
-exit 0
+echo "Dropping into shell"
+hostname linux
+export PS1='\u@\h:\w\p '
+exec setsid cttyhack sh -l

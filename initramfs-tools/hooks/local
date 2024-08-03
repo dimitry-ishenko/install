@@ -12,6 +12,7 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
+copy_exec /usr/bin/busybox /usr/bin/busybox.full
 copy_exec /usr/bin/mount
 copy_exec /usr/bin/tar
 copy_exec /usr/sbin/mkfs.ext4
