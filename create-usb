@@ -43,8 +43,8 @@ EOF
 
 cyan "Installing GRUB"
 mkdir -p "$target/EFI"
-grub-install --boot-directory="$target" --efi-directory="$target" --removable --target=i386-efi
-grub-install --boot-directory="$target" --efi-directory="$target" --removable --target=x86_64-efi
+grub-install -v --boot-directory="$target" --efi-directory="$target" --removable --target=i386-efi
+grub-install -v --boot-directory="$target" --efi-directory="$target" --removable --target=x86_64-efi
 
 cyan "Copying Linux kernel"
 mkdir -p "$target/boot"
