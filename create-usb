@@ -29,6 +29,16 @@ menuentry "Boot into install shell" {
 
     echo "Booting"
 }
+
+menuentry "Boot from HDD" {
+    echo "Loading kernel"
+    linux /boot/vmlinuz root=LABEL=root ro net.ifnames=0
+
+    echo "Loading initrd"
+    initrd  /boot/initrd.img
+
+    echo "Booting"
+}
 EOF
 
 cyan "Installing GRUB"
