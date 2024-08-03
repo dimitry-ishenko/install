@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
+
 source colors
+(($EUID == 0)) || die "Must be root"
 
 DESTDIR=$(mktemp -d) # used by hook-functions and by us
 verbose=y # used by hook-functions
@@ -21,7 +23,11 @@ copy_exec /usr/sbin/parted
 echo
 
 cyan "Compressing"
-(cd $DESTDIR; find -print0 | cpio --create -0 --format=newc --verbose | gzip --best > ../initrd.cpio.gz)
+(
+    cd $DESTDIR
+    chown -R root:root .
+    find -print0 | cpio --create -0 --format=newc --verbose | gzip --best > ../initrd.cpio.gz
+)
 mv $DESTDIR/../initrd.cpio.gz .
 echo
 
