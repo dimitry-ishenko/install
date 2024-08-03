@@ -19,3 +19,5 @@ copy_exec initramfs-tools/cmount /usr/sbin
 copy_exec initramfs-tools/cumount /usr/sbin
 copy_exec initramfs-tools/part_bios /usr/sbin
 copy_exec initramfs-tools/part_efi /usr/sbin
+
+copy_file conf initramfs-tools/profile /etc

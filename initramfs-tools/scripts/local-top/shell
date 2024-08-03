@@ -12,7 +12,6 @@ find -samefile /usr/bin/busybox -exec rm '{}' ';'
 mv /usr/bin/busybox.full /usr/bin/busybox
 /usr/bin/busybox --install
 
+sleep 3
 echo "Dropping into shell"
-hostname linux
-export PS1='\u@\h:\w\$ '
 exec setsid cttyhack sh -l

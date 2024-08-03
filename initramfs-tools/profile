@@ -1,0 +1,10 @@
+# /etc/profile
+
+hostname linux
+export HOME=/root
+export PS1='\u@\h:\w\$ '
+
+alias ls="ls -F --color=auto"
+alias ll="ls -l"
+alias la="ls -la"
+alias lh="ls -lh"
