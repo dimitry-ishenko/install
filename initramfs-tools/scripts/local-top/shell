@@ -10,7 +10,7 @@ prereqs)
     ;;
 esac
 
-if grep -q rescue_shell /proc/cmdline; then
+if grep -qE " shell( |$)" /proc/cmdline; then
     cat >> $HOME/.profile <<EOF
 alias ll="ls -lF"
 alias la="ls -laF"
