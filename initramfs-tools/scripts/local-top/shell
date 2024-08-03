@@ -1,14 +1,9 @@
 #!/bin/sh
 
-PREREQ=""
-prereqs() { echo "$PREREQ"; }
-
-case $1 in
-prereqs)
-    prereqs
+if [ "$1" == "prereqs" ]; then
+    echo ""
     exit 0
-    ;;
-esac
+fi
 
 grep -qE " shell( |$)" /proc/cmdline || exit 0
 
