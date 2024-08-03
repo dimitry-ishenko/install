@@ -35,7 +35,7 @@ menuentry "Boot from HDD" {
     linux /boot/vmlinuz root=LABEL=root ro net.ifnames=0
 
     echo "Loading initrd"
-    initrd  /boot/initrd.img
+    initrd /boot/initrd.img
 
     echo "Booting"
 }
