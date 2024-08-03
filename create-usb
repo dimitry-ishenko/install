@@ -20,10 +20,14 @@ set gfxpayload=keep
 insmod all_video
 insmod gfxterm
 
-menuentry "Rescue shell" {
-    echo    "Booting"
-    linux   /boot/vmlinuz shell
-    initrd  /boot/initramfs
+menuentry "Boot into install shell" {
+    echo "Loading kernel"
+    linux /boot/vmlinuz shell
+
+    echo "Loading initrd"
+    initrd /boot/initrd.img
+
+    echo "Booting"
 }
 EOF
 
@@ -36,5 +40,5 @@ cyan "Copying Linux kernel"
 mkdir -p "$target/boot"
 cp -Lv /boot/vmlinuz "$target/boot/"
 
-cyan "Creating initramfs"
-mkinitramfs -d initramfs-tools -o "$target/boot/initramfs"
+cyan "Creating initrd"
+mkinitramfs -d initramfs-tools -o "$target/boot/initrd.img"
