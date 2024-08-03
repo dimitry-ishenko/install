@@ -17,5 +17,5 @@ copy_exec /usr/sbin/parted
 
 copy_exec initramfs-tools/cmount /usr/sbin
 copy_exec initramfs-tools/cumount /usr/sbin
-copy_exec initramfs-tools/part-bios /usr/sbin
-copy_exec initramfs-tools/part-efi /usr/sbin
+copy_exec initramfs-tools/part_bios /usr/sbin
+copy_exec initramfs-tools/part_efi /usr/sbin
