@@ -1,6 +1,6 @@
 # /etc/profile
+hostname initrd
 
-hostname linux
 export HOME=/root
 export PS1='\u@\h:\w\$ '
 
