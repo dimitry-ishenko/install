@@ -15,9 +15,9 @@ copy_exec /usr/sbin/mkfs.fat
 copy_exec /usr/sbin/mkfs.ntfs
 copy_exec /usr/sbin/parted
 
-copy_exec initramfs-tools/cmount /usr/sbin
-copy_exec initramfs-tools/cumount /usr/sbin
-copy_exec initramfs-tools/part_bios /usr/sbin
-copy_exec initramfs-tools/part_efi /usr/sbin
+copy_exec initrd/usr/sbin/cmount /usr/sbin
+copy_exec initrd/usr/sbin/cumount /usr/sbin
+copy_exec initrd/usr/sbin/part_bios /usr/sbin
+copy_exec initrd/usr/sbin/part_efi /usr/sbin
 
-copy_file conf initramfs-tools/profile /etc
+copy_file conf initrd/etc/profile /etc

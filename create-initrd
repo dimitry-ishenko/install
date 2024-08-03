@@ -18,11 +18,6 @@ copy_exec /usr/sbin/mkfs.ext4
 copy_exec /usr/sbin/mkfs.fat
 copy_exec /usr/sbin/mkfs.ntfs
 copy_exec /usr/sbin/parted
-
-copy_exec initramfs-tools/cmount /usr/sbin
-copy_exec initramfs-tools/cumount /usr/sbin
-copy_exec initramfs-tools/part-bios /usr/sbin
-copy_exec initramfs-tools/part-efi /usr/sbin
 echo
 
 cyan "Compressing"
