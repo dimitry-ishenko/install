@@ -29,16 +29,20 @@ mount -n -t devpts   devpts   /dev/pts
 mount -n -t proc     proc     /proc
 mount -n -t sysfs    sysfs    /sys
 
-root=
-resume=
 init=/sbin/init
+
+overlay=
+resume=
+root=
+rootdir=/mnt/root
 
 for cmd in $(cat /proc/cmdline); do
     case ${cmd} in
-        shell)    shell;;
-        root=*)   root=$(find $cmd);;
-        resume=*) resume=$(find $cmd);;
-        init=*)   init=${cmd#init=};;
+        init=*)    init=${cmd#init=};;
+        overlay)   overlay=y;;
+        resume=*)  resume=$(find $cmd);;
+        root=*)    root=$(find $cmd);;
+        shell)     shell;;
     esac
 done
 
@@ -49,19 +53,38 @@ if [ -n "$resume" -a -e /sys/power/resume ]; then
     echo "$((0x$min)):$((0x$maj))" > /sys/power/resume
 fi
 
+mount_root()
+{(
+    set -e
+    mount -n -o ro $root $rootdir
+
+    if [ -n "$overlay" ]; then
+        mkdir /mnt/root-ro
+        mount --move  $rootdir /mnt/root-ro
+
+        mkdir /mnt/root-rw
+        mount -t tmpfs root-rw /mnt/root-rw
+
+        mkdir /mnt/root-rw/upperdir /mnt/root-rw/workdir
+        mount -n -t overlay -o lowerdir=/mnt/root-ro,upperdir=/mnt/root-rw/upperdir,workdir=/mnt/root-rw/workdir overlay $rootdir
+
+        mkdir $rootdir/mnt/root-ro $rootdir/mnt/root-rw
+        mount --move  /mnt/root-ro $rootdir/mnt/root-ro
+        mount --move  /mnt/root-rw $rootdir/mnt/root-rw
+    fi
+)}
+
 if [ -n "$root" ]; then
-    if mount -n -o ro $root /mnt/root; then
+    if mount_root; then
         umount -n /sys
         umount -n /proc
         umount -n /dev/pts
         umount -n /dev
-
-        exec switch_root /mnt/root $init
-    else
-        echo "Failed to mount $root"
+        exec switch_root $rootdir $init
     fi
+    echo "Failed to switch root"
 else
-    echo "Root device not specified or not found"
+    echo "Root device not found"
 fi
 
 shell exec
