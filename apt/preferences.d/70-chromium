@@ -1,7 +1,0 @@
-Package: chromium* libjpeg62-turbo
-Pin: release o=Debian
-Pin-Priority: 500
-
-Package: chromium* libjpeg62-turbo
-Pin: release o=Debian Backports
-Pin-Priority: 500
